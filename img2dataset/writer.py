@@ -267,15 +267,17 @@ class FilesSampleWriter:
         self.buffered_parquet_writer = BufferedParquetWriter(output_folder + "/" + shard_name + ".parquet", schema, 100)
         self.encode_format = encode_format
 
-    def write(self, img_str, key, caption, meta):
+    def write(self, img_str, key, caption, meta, add_subfolder=None):
         """Write sample to disk"""
+        if add_subfolder is not None:
+            os.makedirs(f"{self.subfolder}/{add_subfolder}", exist_ok=True)
         if img_str is not None:
-            filename = f"{self.subfolder}/{key}.{self.encode_format}"
+            filename = f"{self.subfolder}/{key}.{self.encode_format}" if add_subfolder is None else f"{self.subfolder}/{add_subfolder}/{key}.{self.encode_format}"
             with self.fs.open(filename, "wb") as f:
                 f.write(img_str)
             if self.save_caption:
                 caption = str(caption) if caption is not None else ""
-                caption_filename = f"{self.subfolder}/{key}.txt"
+                caption_filename = f"{self.subfolder}/{key}.txt" if add_subfolder is None else f"{self.subfolder}/{add_subfolder}/{key}.txt"
                 with self.fs.open(caption_filename, "w") as f:
                     f.write(str(caption))
 
@@ -284,7 +286,7 @@ class FilesSampleWriter:
                 if isinstance(v, np.ndarray):
                     meta[k] = v.tolist()
             j = json.dumps(meta, indent=4)
-            meta_filename = f"{self.subfolder}/{key}.json"
+            meta_filename = f"{self.subfolder}/{key}.json" if add_subfolder is None else f"{self.subfolder}/{add_subfolder}/{key}.json" 
             with self.fs.open(meta_filename, "w") as f:
                 f.write(j)
         self.buffered_parquet_writer.write(meta)

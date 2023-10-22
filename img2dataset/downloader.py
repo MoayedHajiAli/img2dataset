@@ -76,7 +76,11 @@ def compute_key(key, shard_id, oom_sample_per_shard, oom_shard_count):
 
 
 class Downloader:
-    """The downloader class gets calls with shards, download them then call the writer to write them down"""
+    """The downloader class gets calls with shards, download them then call the writer to write them down
+    
+    CUSTOM EDITS: create sub-folders according to aspect-ratios and save the images there.
+    
+    """
 
     def __init__(
         self,
@@ -325,11 +329,13 @@ class Downloader:
                     img_stream.close()
                     del img_stream
 
+                    aspect_ration = f"{int(height)}-{int(width)}"
                     sample_writer.write(
                         img,
                         str_key,
                         sample_data[caption_indice] if caption_indice is not None else None,
                         meta,
+                        add_subfolder=aspect_ration
                     )
                 except Exception as err:  # pylint: disable=broad-except
                     traceback.print_exc()
